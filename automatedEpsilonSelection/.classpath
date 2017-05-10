@@ -2,9 +2,9 @@
 <classpath>
 	<classpathentry kind="src" path="src"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
-	<classpathentry kind="lib" path="/media/anindya/Data/UC/Research/General/Github.comRepositories/tda-code/automatedEpsilonSelection/lib/weka-3-8-1/remoteExperimentServer.jar"/>
-	<classpathentry kind="lib" path="/media/anindya/Data/UC/Research/General/Github.comRepositories/tda-code/automatedEpsilonSelection/lib/weka-3-8-1/weka.jar"/>
-	<classpathentry kind="lib" path="/media/anindya/Data/UC/Research/General/Github.comRepositories/tda-code/automatedEpsilonSelection/lib/weka-3-8-1/weka-src.jar"/>
-	<classpathentry kind="lib" path="/media/anindya/Data/UC/Research/General/Github.comRepositories/tda-code/automatedEpsilonSelection/lib/opencsv-3.9.jar"/>
+	<classpathentry kind="lib" path="/media/anindya/Data/UC/Research/TDA/Github.comRepositories/tda-code/automatedEpsilonSelection/lib/weka-3-8-1/remoteExperimentServer.jar"/>
+	<classpathentry kind="lib" path="/media/anindya/Data/UC/Research/TDA/Github.comRepositories/tda-code/automatedEpsilonSelection/lib/weka-3-8-1/weka.jar"/>
+	<classpathentry kind="lib" path="/media/anindya/Data/UC/Research/TDA/Github.comRepositories/tda-code/automatedEpsilonSelection/lib/weka-3-8-1/weka-src.jar"/>
+	<classpathentry kind="lib" path="/media/anindya/Data/UC/Research/TDA/Github.comRepositories/tda-code/automatedEpsilonSelection/lib/opencsv-3.9.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
