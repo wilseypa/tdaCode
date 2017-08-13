@@ -1,8 +1,12 @@
 require(TDA)
 
+epsilon <- readline("Enter the scale parameter (epsilon) for the Rips complex: ")
+epsilon <- as.numeric(epsilon)
+
+maxDimension <- readline("Enter the maximum dimension of the homological features: ")
+maxDimension <- as.numeric(maxDimension)
+
 data <- read.csv("originalDataSet.csv", header = FALSE)
-epsilon <- 5
-maxDimension <- 1
 sink(file = "complexSizeRuntimeStability.txt", append = TRUE)
 print(paste0("The scale parameter for the Rips complex is ", epsilon))
 writeLines('\n\n')
