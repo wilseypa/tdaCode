@@ -9,7 +9,8 @@ epsilon <- as.numeric(args[1])
 maxDimension <- as.numeric(args[2])
 path <- args[3]
 fileName <- args[4]
-tdaType <- args[5]
+label <- args[5]
+tdaType <- args[6]
 fullPath <- paste(path,fileName,".csv", sep="")
 # Read the data set from the disk.
 data <- read.csv(fullPath, header = FALSE)
@@ -33,9 +34,9 @@ write.table(Diag[["diagram"]], file = paste(path,fileName,tdaType,"_Output.csv",
 
 # Plot the output of persistent homology from the original data set on a pdf file.
 pdf(file = paste(path,"RPlot_",fileName,"_",tdaType,".pdf",sep=""), width = 11, height = 8.50)
-plot(data, main = fileName)
-plot(Diag[["diagram"]], main = paste("Persistence Diagram from",fileName))
-plot(Diag[["diagram"]], barcode = TRUE, main = paste("Barcodes from",fileName))
+plot(data, main = paste(label,tdaType))
+plot(Diag[["diagram"]], main = paste("Persistence Diagram\n",label,tdaType))
+plot(Diag[["diagram"]], barcode = TRUE, main = paste("Barcodes from\n",label,tdaType))
 
 
 sink(file = paste(path,"r_temp.txt",sep=""), append = TRUE)
