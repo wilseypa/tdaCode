@@ -6,14 +6,16 @@ import numpy as np
 from math import sqrt
 from sklearn import datasets as ds
 from sklearn import cluster as cs
+import matplotlib
+matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_pdf import PdfPages
 import palettable
 
 colors = palettable.colorbrewer.qualitative.Dark2_7.mpl_colors
 
-reduction_percentages = [0.0, 0.1, 0.25, 0.5, 0.75, 0.9, 0.95, 0.99]
-tda_libraries = ['GUDHI','SimBa','PHAT','Dionysus']
+reduction_percentages = [0.0, 0.1, 0.25, 0.5, 0.75, 0.9, 0.95]
+tda_libraries = ['GUDHI','PHAT','Dionysus','SimBa']
 files_to_run = []
 originalData = []
 outdir = None
@@ -29,8 +31,7 @@ def outputData(data, label):
     lines = a.readlines()
     a.close()
     out = file(outDir+label+'.mat', 'w')
-    print len(data[0])
-    out.write(str(len(data[0])) + "\n")
+    out.write(str(len(data[0])).replace(',',' ') + "\n")
     out.writelines(lines)
     out.close()
     return
@@ -41,12 +42,12 @@ def outputBarcodeDiagram(filename,lbl,pp):
 		delim= ' '	
 
 	if(not os.path.isfile(filename)):
-		return
+		return '0'
 	plt.clf()
 	data = np.loadtxt(filename, dtype=np.float, delimiter = delim, skiprows=1)
 
 	if(len(data.shape) <2):
-		return
+		return '0'
 
 	plt.title("Bar Codes " + lbl)
 	plt.grid(True, which='both')
@@ -55,14 +56,13 @@ def outputBarcodeDiagram(filename,lbl,pp):
 
 	c = [0,0,0]
 	bc = np.bincount(data[:,0].astype(int))
-	print bc
+
 	if(len(bc) > 1):
 		c[1] = bc[0]+5
 		c[2] = bc[1]+ bc[0]+5
 
 	for i in xrange(len(data)):
 
-		print data[i,0],data[i,1],data[i,2]
 
 		if data[i,0] == 0:
 			color = 'black'
@@ -76,18 +76,16 @@ def outputBarcodeDiagram(filename,lbl,pp):
 		plt.hlines(int(c[int(data[i,0])]),data[i,1],data[i,2])
 
 		c[int(data[i,0])] += 1
-
 	
-	plt.xlim(0,maxDeath)
-	#d0.set_ylim(0,lind[0] + 1)
-	#d1.set_ylim(0,lind[1] + 1)
-	#d2.set_ylim(0,lind[1] + 1)
+	if(filename.find('SimBa') >= 0):
+		plt.xlim(0,.1)
+	else:
+		plt.xlim(0,maxDeath)
 	plt.xlabel('Time')
-		
 
 	plt.savefig(pp, format='pdf')
 	plt.clf()
-	return
+	return str(sum(bc))
 
 def outputDataDiagram(data,lbl, pp):
     plt.clf()
@@ -95,8 +93,6 @@ def outputDataDiagram(data,lbl, pp):
     plt.title("Point Cloud " + lbl)
     plt.grid(True, which='both')
     plt.savefig(pp, format='pdf')
-    #plt.savefig(outDir + lbl + ".pdf")
-    #plt.show()
     plt.clf()
     return
 
@@ -109,9 +105,6 @@ def outputPersistenceDiagram(filename,lbl,pp):
 		return
 	plt.clf()
 	data = np.loadtxt(filename, dtype=np.float, delimiter = delim, skiprows=1)
-	#print data[:, [1, 2]][data[:, 0] == 1]
-	#print data[:, [2]][data[:, 0] == 1]
-	print len(data.shape)
 	if(len(data.shape) >1):
 		maxDeath = np.ceil(np.max(data[:,2]))
 		maxBetti = np.ceil(np.max(data[:,0]))
@@ -144,24 +137,28 @@ def outputPersistenceDiagram(filename,lbl,pp):
 
 		plt.xticks(np.arange(0, maxDeath+1, 1.0))
 		plt.yticks(np.arange(0, maxDeath+1,1.0))
-		plt.xlim(-.05, maxDeath+0.05)
-		plt.ylim(-.05, maxDeath+0.05)
+		if(filename.find('SimBa') >=0):
+			plt.xlim(-.05, .2)
+			plt.ylim(-.05, .2) 
+		else:
+			plt.xlim(-.05, maxDeath+0.05)
+			plt.ylim(-.05, maxDeath+0.05)
 
 		# plot black diagonal line
 		plt.plot(np.arange(maxDeath+1), color='black', linewidth=.2)
 
 		plt.scatter(deathBetti0,birthBetti0, color=colors[0], marker='o', s=markerSize)
-		plt.text(0.5*maxDeath,(0.5*maxDeath)-axisOffset, "0-Cell\n(x,y)=(death, birth)", color=colors[0], ha='left', va='top')
+		plt.text(0.5*maxDeath,(0.5*maxDeath)-axisOffset, "0-Dimension\n(x,y)=(death, birth)", color=colors[0], ha='left', va='top')
 		plt.scatter(birthBetti1,deathBetti1, color=colors[1], marker='^', s=markerSize)
-		plt.text(0.75*maxDeath,(0.75*maxDeath)+axisOffset, "1-Cell\n(x,y)=(birth, death)", color=colors[1], ha='right', va='bottom')
+		plt.text(0.75*maxDeath,(0.75*maxDeath)+axisOffset, "1-Dimension\n(x,y)=(birth, death)", color=colors[1], ha='right', va='bottom')
 
 		if maxBetti > 1 :
 			plt.axvline(0, color='black', linewidth=.2)
 			plt.plot(np.negative(np.arange(maxDeath+1)), np.arange(maxDeath+1), color='black', linewidth=.2)
 			plt.scatter(np.negative(birthBetti2),deathBetti2, color=colors[2], marker='*', s=markerSize)
-			plt.text(-(0.75*maxDeath),(0.75*maxDeath)+axisOffset, "2-Cell\n(x,y)=(birth, death)", color=colors[2], ha='left', va='bottom')
+			plt.text(-(0.75*maxDeath),(0.75*maxDeath)+axisOffset, "2-Dimension\n(x,y)=(birth, death)", color=colors[2], ha='left', va='bottom')
 			plt.scatter(np.negative(deathBetti3),birthBetti3, color=colors[3], marker='x', s=markerSize)
-			plt.text(-(0.5*maxDeath),(0.5*maxDeath)-axisOffset, "3-Cell\n(x,y)=(death, birth)", color=colors[3], ha='right', va='top')
+			plt.text(-(0.5*maxDeath),(0.5*maxDeath)-axisOffset, "3-Dimension\n(x,y)=(death, birth)", color=colors[3], ha='right', va='top')
 			plt.xlim(-(maxDeath+0.25), maxDeath+0.25)
 			plt.xticks(np.arange(-(maxDeath), maxDeath+1, 1.0))
 
@@ -175,34 +172,39 @@ def outputPersistenceDiagram(filename,lbl,pp):
 def calculateClusterStatistics(data, data_labels):
 	'''WIP: Cluster Avg/Max'''
 	if data_labels != []:
+		maxIndex = np.ceil(np.max(data_labels))
+		max_error = -1.0
+		min_error = 1000.0
+		avg_error = 0.0
         #For each Cluster
-		for index in range(0,len(data)):
-            #print index
-			max_error = 0.0
-			avg_error = 0.0
-			count = 0.0
-			center = [0.0,0.0,0.0,0.0]
+		for index in range(0,int(maxIndex)):
 			buff = []
 			#For each label that matches the current cluster
 			for lbl_index in range(0, len(data_labels)):
 				if(data_labels[lbl_index] == index):
-					euc = 0
-					for z in range(0, len(originalData[lbl_index])):
-						loc = originalData[lbl_index][z]
-						#print loc, originalData[lbl_index][z], originalData[lbl_index]
-						center[z] += loc
-						euc += loc*loc
-					if euc > max_error:
-						max_error = euc
-					avg_error += sqrt(euc)
-					count += 1
-			center[0] = center[0] / count
-			center[1] = center[1] / count
-			#print avg_error = avg_error / count
-			#print center[0], center[1], avg_error, max_error, count
-			#ax.add_artist(plt.Circle((center[0],center[1]), avg_error, color='lightgrey',alpha=0.25))
+					buff.append(data[lbl_index])
+					
+			#Calculate the centroid
+			if(len(buff) > 1):
+				centroid = cs.KMeans(n_clusters = 1, init='k-means++', n_jobs=-1).fit(buff).cluster_centers_[0]
+			else:
+				if(len(buff) == 0):
+					buff = None
+				else:
+					centroid = buff[0]
 
+			for d in buff:
+					dist = abs(np.linalg.norm(d-centroid))
+					if dist > max_error:
+						max_error = dist
+					avg_error += dist
+					if dist < min_error:
+						min_error = dist
 
+		avg_error = avg_error / len(data)
+
+		return avg_error,max_error,min_error
+	return 0,0,0 #No data, probably 0% reduction
 
 def outputOverlayDiagram(data,lbl,data_labels, pp):
     plt.clf()
@@ -249,7 +251,7 @@ def getRValues(filename,tda_type):
 
 '''MAIN'''
 if len(sys.argv) > 1:
-    vectors = 400    
+    vectors = 300  
     epsilon = 1
     print "Starting!"
     for farg in sys.argv[1:]:
@@ -287,7 +289,7 @@ if len(sys.argv) > 1:
 
         #Output Header
         outfile = file(os.getcwd() + "/" + outDir + "/agg_results.csv", 'a')
-        outfile.write("Source File,Output Directory,Vectors,Dimensions,Reduction %,KMeans++ Time,R PH Library,Epsilon,Complex Size,PH Time,Bottleneck Distance[0],Wasserstein Distance[0],Bottleneck Distance[1],Wasserstein Distance[1],Bottleneck Distance[2...],Wasserstein Distance[2...],...,...\n")
+        outfile.write("Source File,Output Directory,Vectors,Dimensions,Reduction %,KMeans++ Time,Max Error,Min Error,Avg Error,R PH Library,Lifespan Count,Epsilon,Complex Size,PH Time,Bottleneck Distance[0],Wasserstein Distance[0],Bottleneck Distance[1],Wasserstein Distance[1],Bottleneck Distance[2...],Wasserstein Distance[2...],...,...\n")
         outfile.close() 
 
 
@@ -305,46 +307,55 @@ if len(sys.argv) > 1:
                     red_data_labels = red_data.labels_
                     red_data = red_data.cluster_centers_
                     kmeans_time = (end - start)
-            
+					
+            	
                 #Output the data for R
                 outputData(red_data, str(reduction) + "_Reduction")
 
             except:
                 print "Failed to run KMeans on data size\n\tExiting this run: " + str(reduction) + "% Reduction"
-
+            avg_er, max_er, min_er = calculateClusterStatistics(originalData, red_data_labels)
             for tda_type in tda_libraries:
                 #Output metaData
                 outfile = file(os.getcwd() + "/" + outDir + "/agg_results.csv", 'a')
-                outfile.write(filename + "," + outDir[:-1] + "," + str(len(red_data)) + "," + str(len(red_data[0])) + "," + str(reduction) + "," + str(kmeans_time) + "," + tda_type + ",")
+                outfile.write(filename + "," + outDir[:-1] + "," + str(len(red_data)) + "," + str(len(red_data[0])) + "," + str(reduction) + "," + str(kmeans_time) + "," + str(max_er) +"," + str(min_er) + "," + str(avg_er) + "," + tda_type + ",")
                 outfile.close() 
                 
                 if(tda_type == "SimBa"):
                     if os.path.isfile("./SimBa"):
                         #Call SimBa for processing
-                        returnCode = subprocess.call(["./SimBa","-i",os.getcwd()+"/"+outDir+"/"+str(reduction)+"_Reduction.mat","-c","1.001","-o",os.getcwd()+"/"+outDir+"/"+str(reduction)+"_ReductionSimBa_Output.csv"])
+                        returnCode = subprocess.call(["./SimBa","-i",os.getcwd()+"/"+outDir+"/"+str(reduction)+"_Reduction.mat","-o",os.getcwd()+"/"+outDir+"/"+str(reduction)+"_ReductionSimBa_Output.csv"])
                         #Call R for processing
 
-                        '''WIP: Post-processing SimBa output b/d with R, extraction of complex size and runtime from output files'''    
+                        outputPersistenceDiagram(os.getcwd() + "/" + outDir + "/" + str(reduction)+"_Reduction"+tda_type+"_Output.csv", str(reduction*100) + "% Reduction " + tda_type, pp)
+                        bd_count = outputBarcodeDiagram(os.getcwd() + "/" + outDir + "/" + str(reduction)+"_Reduction"+tda_type+"_Output.csv", str(reduction*100) + "% Reduction " + tda_type, pp)
+
+                        '''WIP: Post-processing SimBa output b/d with R, extraction of complex size and runtime from output files'''
                         #returnCode = subprocess.call(["Rscript",os.getcwd()+"/TDA_genPlots.r","2",os.getcwd()+"/"+outDir,str(reduction) + "_Reduction"])
+
+                        outfile = file(os.getcwd() + "/" + outDir + "/agg_results.csv", 'a')
+                        outfile.write(bd_count + "\n")
+                        outfile.close()
                         
                     else:
                         print "Could not find SimBa, skipping."
-                    #Extract PH Execution Time, complex size from temp output file
-                    outfile = file(os.getcwd() + "/" + outDir + "/agg_results.csv", 'a')
-                    outfile.write("\n")
-                    outfile.close() 
+                    	#Extract PH Execution Time, complex size from temp output file
+                    	outfile = file(os.getcwd() + "/" + outDir + "/agg_results.csv", 'a')
+                    	outfile.write("\n")
+                    	outfile.close() 
                 else:
                     #Call R for processing
                     returnCode = subprocess.call(["Rscript",os.getcwd()+"/TDA_testRScript.r",str(epsilon),"2",os.getcwd()+"/"+outDir,str(reduction) + "_Reduction",str(reduction*100) + "% Reduction", tda_type])
 
+                    outputPersistenceDiagram(os.getcwd() + "/" + outDir + "/" + str(reduction)+"_Reduction"+tda_type+"_Output.csv", str(reduction*100) + "% Reduction " + tda_type, pp)
+                    bd_count = outputBarcodeDiagram(os.getcwd() + "/" + outDir + "/" + str(reduction)+"_Reduction"+tda_type+"_Output.csv", str(reduction*100) + "% Reduction " + tda_type, pp)
+
                     #Extract PH Execution Time, complex size from temp output file
                     outfile = file(os.getcwd() + "/" + outDir + "/agg_results.csv", 'a')
+                    outfile.write(bd_count)
                     outfile.write(getRValues(os.getcwd() + "/" + outDir +"r_temp.txt", tda_type))
                     outfile.close()
-                outputPersistenceDiagram(os.getcwd() + "/" + outDir + "/" + str(reduction)+"_Reduction"+tda_type+"_Output.csv", str(reduction*100) + "% Reduction " + tda_type, pp)
-                outputBarcodeDiagram(os.getcwd() + "/" + outDir + "/" + str(reduction)+"_Reduction"+tda_type+"_Output.csv", str(reduction*100) + "% Reduction " + tda_type, pp)
-
-
+                		
 
             outputDataDiagram(red_data,str(reduction*100) + "% Reduction",pp)
             outputOverlayDiagram(red_data, str(reduction*100) + "% Reduction", red_data_labels,pp)
